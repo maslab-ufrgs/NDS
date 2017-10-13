@@ -170,15 +170,18 @@ def main():
     """
     Upper level function. It calls the other functions in an orderly way.
     Parser inputs:
-        net_file:String = The absolute path to the network file.
+        file:String = The absolute path to the network file.
+        episodes:Integer = Number of episodes in the MSA run.
         changes:Integer = Number of edges to change in the algorithm.
     """
     #Parser things for the parameters
     prs = ArgP.ArgumentParser(formatter_class=ArgP.ArgumentDefaultsHelpFormatter,
                                   description="""
-                                              Network Disturbance System is a software that randomly
-                                              generates a new network. (needs work yet)
-                                              V0.1
+                                              Network Disturbance System is a software that disturbs
+                                              a traffic network (graph) by removing 1 random edge
+                                              and inserting another with the same attributes but
+                                              with different start and end nodes.
+                                              V0.9
                                               """)
     prs.add_argument("-f", dest="file", required=True, help="The network file.\n")
     prs.add_argument("-e", "--episodes", type=int, default=1000, help="Number of episodes.\n")
@@ -199,8 +202,8 @@ def main():
     nodes, edge_or, od_matrix, UE, SO, PoA = assignment(net_file=args.file, episodes=args.episodes)
     #Gets the original graph
     graph_o = export_to_igraph(nodes, edge_or, with_cost=True)
-    #Gets betweenness
-    ## Needs to adjust the weights
+
+    #Needs to adjust the weights in the betweenness
     print_results(net_name, changed_edges, args.episodes, UE, SO, PoA,
                   sum(graph_o.edge_betweenness())/len(graph_o.es))
 
@@ -212,10 +215,12 @@ def main():
         #Number of changes made in the edges
         changes += 1
 
+        #Can ignore the output of edges, nodes and od_matrix as they don't change
         _, _, _, UE, SO, PoA = assignment(episodes=args.episodes, edge_list=edge_modf, node_list=nodes,
                                           od_matrix=od_matrix)
         #Gets the modified graph
         graph_m = export_to_igraph(nodes, edge_modf, with_cost=True)
+        #Needs to adjust the weights in the betweenness
         print_results(net_name, changed_edges, args.episodes, UE, SO, PoA,
                       sum(graph_m.edge_betweenness())/len(graph_m.es))
 
