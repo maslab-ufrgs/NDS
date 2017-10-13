@@ -1,5 +1,9 @@
 Network Disturbance System (NDS)
 =============================
+Network Disturbance System is a software that disturbs a traffic network
+(graph) by removing 1 random edge and inserting another with the same
+attributes but with different start and end nodes.
+
 ## Requirements
  * [Python 3](https://www.python.org/downloads/)
  * [Python Mathematical Expression Evaluator](https://pypi.python.org/pypi/py_expression_eval)
