@@ -125,6 +125,7 @@ def change_edges(node_list, edge_list, od_matrix):
     while not found:
         #Chooses an edge randomly
         rnd_edge = rnd.choice(edge_ln)
+        edge_old_name = rnd_edge.name
         #Chooses 2 random nodes
         node1 = rnd.choice(node_list)
         node2 = rnd.choice(node_list)
@@ -148,17 +149,21 @@ def change_edges(node_list, edge_list, od_matrix):
             #Changes the random edge
             rnd_edge.start = node1.name
             rnd_edge.end = node2.name
+            #If we change the name of the edge, we`ll receive warnings from Docplex because of
+            ##duplicate names sometimes
+            #rnd_edge.name = "{0}-{1}".format(node1.name, node2.name)
             #Changes the complementary edges, if it has one
             if has_comp_edge:
                 comp_edge.start = node2.name
                 comp_edge.end = node1.name
+                #comp_edge.name = "{0}-{1}".format(node2.name, node1.name)
             #Checks if the graph is connected, if it is, then the function is over and a new graph
             ##has been found
             if not export_to_igraph(node_list, edge_ln).is_connected():
                 break
             else:
                 found = True
-                changed_edge = node1.name + '-' + node2.name
+                changed_edge = "{0}_{1}-{2}".format(edge_old_name, node1.name, node2.name)
 
     return edge_ln, changed_edge
 
@@ -225,8 +230,8 @@ def main():
     #While loop for changing the edges of the graph
     while changes < args.changes:
         #Modified edges of the graph
-        edge_modf, changed_edge = change_edges(nodes, edge_or, od_matrix)
-        changed_edges.append(changed_edge)
+        edge_modf, c_edge = change_edges(nodes, edge_or, od_matrix)
+        changed_edges.append(c_edge)
         #Number of changes made in the edges
         changes += 1
 
