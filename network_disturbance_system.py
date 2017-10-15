@@ -15,6 +15,7 @@ import igraph as iG
 
 #Home-made modules
 import MSA.successive_averages as MSA
+import system_optimal_solver.so_solver as SO
 
 def export_to_igraph_file(edge_list, with_cost=False): #Don't think we'll use this one.
     '''
@@ -71,26 +72,39 @@ def export_to_igraph(node_list, edge_list, with_cost=False):
 
 def assignment(net_file='', episodes=400, edge_list=None, node_list=None, od_matrix=None):
     """
-    Calls the MSA and Cplex to compute UE (User Equilibrium) and SO (System Optimal) and PoA (Price
-    of Anarchy), respectively.
+    Calls the MSA and System Optimal Solver to compute UE (User Equilibrium) and SO (System Optimal)
+    and PoA (Price of Anarchy), respectively.
+
+    **Needs either a network file path or (edge_list and node_list and od_matrix) to work.
     In:
         net_file:String = The absolute path to the network file.
         episodes:Integer = Number of episodes for the MSA run.
-
-    ##Needs to be run in the program a 2nd time where it receives directly the edges and nodes.
-    ###Maybe one way to address this is to generate a network file from it.
+        edge_list:List = Node objects from the MSA module.
+        node_list:List = Edge objects from the MSA module.
+        od_matrix:Dictionary = Represents the OD pairs and their demands.
+    Out:
+        nodes:List = Node objects from the MSA module.
+        edges:List = Edge objects from the MSA module.
+        od_matrix:Dictionary = Represents the OD pairs and their demands.
+        ue:Float = User equilibrium solution.
+        so:Float = System optimal solution.
+        PoA:Float = Price of Anarchy.
     """
     if edge_list and node_list and od_matrix:
-        nodes, edges, od_matrix, UE = MSA.run(episodes, edge_list=edge_list, node_list=node_list,
+        nodes, edges, od_matrix, ue = MSA.run(episodes, edge_list=edge_list, node_list=node_list,
                                               od_matrix=od_matrix, output=False)
     else:
         #Calls MSA for network and UE
-        nodes, edges, od_matrix, UE = MSA.run(episodes, net_file=net_file, output=False)
+        nodes, edges, od_matrix, ue = MSA.run(episodes, net_file=net_file, output=False)
 
-    #Calls Cplex (SO and PoA)
-    PoA, SO = [0, 0]
+    #Calls System Optimal Solver for SO
+    so = SO.SOSolver(nodes, edges, od_matrix)
+    so.solve()
+    sop = so.get_system_optimal()
 
-    return nodes, edges, od_matrix, UE, SO, PoA
+    PoA = 0
+
+    return nodes, edges, od_matrix, ue, sop, PoA
 
 def change_edges(node_list, edge_list, od_matrix):
     """
@@ -180,7 +194,7 @@ def main():
                                               Network Disturbance System is a software that disturbs
                                               a traffic network (graph) by removing 1 random edge
                                               and inserting another with the same attributes but
-                                              with different start and end nodes.
+                                              with different start and end nodes.\n
                                               V0.9
                                               """)
     prs.add_argument("-f", dest="file", required=True, help="The network file.\n")
@@ -199,13 +213,13 @@ def main():
 
     #Start of the algorithm
     #Gets the original nodes and edges
-    nodes, edge_or, od_matrix, UE, SO, PoA = assignment(net_file=args.file, episodes=args.episodes)
+    nodes, edge_or, od_matrix, ue, so, PoA = assignment(net_file=args.file, episodes=args.episodes)
     #Gets the original graph
     graph_o = export_to_igraph(nodes, edge_or, with_cost=True)
 
     #Needs to adjust the weights in the betweenness
-    print_results(net_name, changed_edges, args.episodes, UE, SO, PoA,
-                  sum(graph_o.edge_betweenness())/len(graph_o.es))
+    print_results(net_name, changed_edges, args.episodes, ue, so, PoA,
+                  sum(graph_o.edge_betweenness(weights='weight'))/len(graph_o.es))
 
     #While loop for changing the edges of the graph
     while changes < args.changes:
@@ -216,13 +230,12 @@ def main():
         changes += 1
 
         #Can ignore the output of edges, nodes and od_matrix as they don't change
-        _, _, _, UE, SO, PoA = assignment(episodes=args.episodes, edge_list=edge_modf, node_list=nodes,
-                                          od_matrix=od_matrix)
+        _, _, _, ue, so, PoA = assignment(episodes=args.episodes, edge_list=edge_modf,
+                                          node_list=nodes, od_matrix=od_matrix)
         #Gets the modified graph
         graph_m = export_to_igraph(nodes, edge_modf, with_cost=True)
-        #Needs to adjust the weights in the betweenness
-        print_results(net_name, changed_edges, args.episodes, UE, SO, PoA,
-                      sum(graph_m.edge_betweenness())/len(graph_m.es))
+        print_results(net_name, changed_edges, args.episodes, ue, so, PoA,
+                      sum(graph_m.edge_betweenness(weights='weight'))/len(graph_m.es))
 
 
 if __name__ == '__main__':
