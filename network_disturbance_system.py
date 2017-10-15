@@ -103,9 +103,7 @@ def change_edges(node_list, edge_list, od_matrix):
         node1 = rnd.choice(node_list)
         node2 = rnd.choice(node_list)
         #Checks if the 2 nodes are equal or they are an OD pair
-        if node1 == node2 or str(node1.name + '|' + node2.name) in od_matrix:
-            break
-        else:
+        if not (node1 == node2 or (str(node1.name + '|' + node2.name) in od_matrix)):
             #Changes the edge start and end
             """
             Needs to the for actually two edges, because an undirected graph is represented as
@@ -122,6 +120,7 @@ def change_edges(node_list, edge_list, od_matrix):
             #Changes the random edge
             rnd_edge.start = node1.name
             rnd_edge.end = node2.name
+
             #If we change the name of the edge, we`ll receive warnings from Docplex because of
             ##duplicate names sometimes
             #rnd_edge.name = "{0}-{1}".format(node1.name, node2.name)
@@ -130,11 +129,10 @@ def change_edges(node_list, edge_list, od_matrix):
                 comp_edge.start = node2.name
                 comp_edge.end = node1.name
                 #comp_edge.name = "{0}-{1}".format(node2.name, node1.name)
+
             #Checks if the graph is connected, if it is, then the function is over and a new graph
             ##has been found
-            if not export_to_igraph(node_list, edge_ln).is_connected():
-                break
-            else:
+            if export_to_igraph(node_list, edge_ln).is_connected():
                 found = True
                 changed_edge = "{0}_{1}-{2}".format(edge_old_name, node1.name, node2.name)
 
