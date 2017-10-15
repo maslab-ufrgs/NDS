@@ -103,7 +103,7 @@ def assignment(net_file='', episodes=400, edge_list=None, node_list=None, od_mat
     sop = so.get_system_optimal()
 
     #Price of anarchy value
-    PoA = ue/so
+    PoA = ue/sop
 
     return nodes, edges, od_matrix, ue, sop, PoA
 
