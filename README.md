@@ -5,7 +5,7 @@ Network Disturbance System is a software that disturbs a traffic network
 attributes but with different start and end nodes.
 
 ## Requirements
- * [Python 3](https://www.python.org/downloads/)
+ * [Python 3] or [Python 2.7] (https://www.python.org/downloads/)
  * [Python Mathematical Expression Evaluator](https://pypi.python.org/pypi/py_expression_eval)
  
  There is the need to initialize the submodules, to do so use the following command:
@@ -24,6 +24,10 @@ python3 network_disturbance_system.py [OPTIONS]
 Or:
 ```sh
 ./network_disturbance_system.py [OPTIONS]
+```
+or
+```sh
+python2.7 network_disturbance_system.py [OPTIONS]
 ```
 
 All the options have usable defaults so check them before running an experiment.
