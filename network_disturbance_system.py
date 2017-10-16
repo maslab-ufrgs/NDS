@@ -138,7 +138,7 @@ def change_edges(node_list, edge_list, od_matrix):
 
     return edge_ln, changed_edge
 
-def print_results(net_name, changed_edges_list, episodes, UE, SO, PoA, avg_betweenness):
+def print_results(net_name, changed_edges_list, episodes, UE, SO, PoA, graph):
     """
     Prints the results in a table.
     In:
@@ -147,15 +147,22 @@ def print_results(net_name, changed_edges_list, episodes, UE, SO, PoA, avg_betwe
         UE:Float = User equilibrium.
         SO:Float = System optimal.
         PoA:Float = Price of Anarchy.
-        avg_betweenness:Float = Average value of the edge betweenness of the graph.
+        graph:Graph = Python iGraph Graph object that represents the network.
     """
     #Creates the name of the network correctly in the form: network_name_original + _change1_change2
     for change in changed_edges_list:
         net_name += '_' + change
+
+    #List of betweenness of each edge in the graph
+    graph_betweenness = graph.edge_betweenness(weights='weight')
+    #Average value of the edge betweenness of the graph
+    avg_betweenness = sum(graph_betweenness)/len(graph.es)
     #Prints some kind of table
     print('#Network name = {0}\t# of episodes = {1}'.format(net_name, episodes))
-    print('#User Equilibrium\tSystem Optimal\tPrice of Anarchy\tEdge Betweenness')
-    print('{0}\t{1}\t{2}\t{3}'.format(UE, SO, PoA, avg_betweenness))
+    print('#User Equilibrium\tSystem Optimal\tPrice of Anarchy\tEdge Betweenness\tEach edge betweenness')
+    print('{0}\t{1}\t{2}\t{3}\t{4}'.format(UE, SO, PoA, avg_betweenness,
+                                           [((graph.vs[a.tuple[0]]['name'] + '-' + graph.vs[a.tuple[1]]['name']), b) for a, b in
+                                           zip(graph.es, graph_betweenness)]))
 
 def main():
     """
@@ -190,29 +197,31 @@ def main():
 
     #Start of the algorithm
     #Gets the original nodes and edges
-    nodes, edge_or, od_matrix, ue, so, PoA = assignment(net_file=args.file, episodes=args.episodes)
+    nodes, edges, od_matrix, ue, so, PoA = assignment(net_file=args.file, episodes=args.episodes)
     #Gets the original graph
-    graph_o = export_to_igraph(nodes, edge_or, with_cost=True)
+    graph = export_to_igraph(nodes, edges, with_cost=True)
 
     #Needs to adjust the weights in the betweenness
-    print_results(net_name, changed_edges, args.episodes, ue, so, PoA,
-                  sum(graph_o.edge_betweenness(weights='weight'))/len(graph_o.es))
+    #print_results(net_name, changed_edges, args.episodes, ue, so, PoA,
+    #              sum(graph_o.edge_betweenness(weights='weight'))/len(graph_o.es))
+    print_results(net_name, changed_edges, args.episodes, ue, so, PoA, graph)
 
     #While loop for changing the edges of the graph
     while changes < args.changes:
         #Modified edges of the graph
-        edge_modf, c_edge = change_edges(nodes, edge_or, od_matrix)
-        changed_edges.append(c_edge)
+        edges, changed_edge = change_edges(nodes, edges, od_matrix)
+        changed_edges.append(changed_edge)
         #Number of changes made in the edges
         changes += 1
 
         #Can ignore the output of edges, nodes and od_matrix as they don't change
-        _, _, _, ue, so, PoA = assignment(episodes=args.episodes, edge_list=edge_modf,
+        _, _, _, ue, so, PoA = assignment(episodes=args.episodes, edge_list=edges,
                                           node_list=nodes, od_matrix=od_matrix)
         #Gets the modified graph
-        graph_m = export_to_igraph(nodes, edge_modf, with_cost=True)
-        print_results(net_name, changed_edges, args.episodes, ue, so, PoA,
-                      sum(graph_m.edge_betweenness(weights='weight'))/len(graph_m.es))
+        graph = export_to_igraph(nodes, edges, with_cost=True)
+        #print_results(net_name, changed_edges, args.episodes, ue, so, PoA,
+        #              sum(graph_m.edge_betweenness(weights='weight'))/len(graph_m.es))
+        print_results(net_name, changed_edges, args.episodes, ue, so, PoA, graph)
 
 
 if __name__ == '__main__':
