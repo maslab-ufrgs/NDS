@@ -24,13 +24,9 @@ git submodule init && git submodule update
 ## Usage
 Download, extract and from the program folder:
 ```sh
-python3 network_disturbance_system.py [OPTIONS]
-```
-Or:
-```sh
 ./network_disturbance_system.py [OPTIONS]
 ```
-or
+Or:
 ```sh
 python2.7 network_disturbance_system.py [OPTIONS]
 ```
@@ -40,7 +36,7 @@ All the options have usable defaults so check them before running an experiment.
 Use:
 
 ```sh
-python3 network_disturbance_system.py -h
+python2.7 network_disturbance_system.py -h
 ```
 
 ## Results
