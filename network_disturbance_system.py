@@ -207,7 +207,7 @@ def main():
     prs.add_argument("-c", "--changes", type=int, default=1, help="Number of changes in the network.\n")
     prs.add_argument("-k", type=int, default=8, help="Number of routes for KSP algorithm.\n")
     prs.add_argument("-ce", "--complementary_edges", action="store_true", default=False,
-                     help="If it is to change only one direction of the edge.\n")
+                     help="If it is to change both directions of the edge.\n")
     args = prs.parse_args()
 
     #Network name
