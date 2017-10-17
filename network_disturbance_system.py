@@ -194,7 +194,7 @@ def main():
                                               a traffic network (graph) by removing 1 random edge
                                               and inserting another with the same attributes but
                                               with different start and end nodes.\n
-                                              V1.0
+                                              V1.5
                                               """)
     prs.add_argument("-f", dest="file", required=True, help="The network file.\n")
     prs.add_argument("-e", "--episodes", type=int, default=1000, help="Number of episodes.\n")
