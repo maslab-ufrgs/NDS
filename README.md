@@ -52,4 +52,5 @@ arguments:
   -e EPISODES, --episodes EPISODES  Number of episodes. (default: 1000)
   -c CHANGES, --changes CHANGES  Number of changes in the network. (default: 1)
   -k K, Number of routes for KSP algorithm. (default: 8)
+  -ce COMPLEMENTARY_EDGES, If it is to change both direction of the edge. (default: False)
 ```
