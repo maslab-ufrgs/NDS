@@ -42,6 +42,8 @@ python2.7 network_disturbance_system.py -h
 ## Results
 The results of each experiment are printed on the screen after you run the experiment.
 
+The results of the coupling measure is in a csv file with the name of the according network.
+
 ## Options
 ```
 arguments:
