@@ -5,10 +5,15 @@ Network Disturbance System is a software that disturbs a traffic network
 attributes but with different start and end nodes.
 
 ## Requirements
- * [Python 3](https://www.python.org/downloads/) or [Python 2.7](https://www.python.org/downloads/)
+ * [Python 2.7](https://www.python.org/downloads/)
  * [Python Mathematical Expression Evaluator](https://pypi.python.org/pypi/py_expression_eval)
  
  There is the need to initialize the submodules, to do so use the following command:
+```sh
+git submodule init && git submodule update
+```
+
+ Do not forget of doing the same for each submodule, change directory into the submodule's folder and type:
 ```sh
 git submodule init && git submodule update
 ```
@@ -48,4 +53,5 @@ arguments:
   -f FILE               The network file. (default: None)
   -e EPISODES, --episodes EPISODES  Number of episodes. (default: 1000)
   -c CHANGES, --changes CHANGES  Number of changes in the network. (default: 1)
+  -k K, Number of routes for KSP algorithm. (default: 8)
 ```
