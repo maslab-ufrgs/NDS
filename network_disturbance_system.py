@@ -16,6 +16,7 @@ import igraph as iG
 #Home-made modules
 import MSA.successive_averages as MSA
 import system_optimal_solver.so_solver as SO
+import route_coupling.coupling as Coup
 
 def export_to_igraph(node_list, edge_list, with_cost=False):
     """
@@ -150,8 +151,7 @@ def print_results(net_name, changed_edges_list, episodes, UE, SO, PoA, graph):
         graph:Graph = Python iGraph Graph object that represents the network.
     """
     #Creates the name of the network correctly in the form: network_name_original + _change1_change2
-    for change in changed_edges_list:
-        net_name += '_' + change
+    net_name = get_network_name(net_name, changed_edges_list)
 
     #List of betweenness of each edge in the graph
     graph_betweenness = graph.edge_betweenness(weights='weight')
@@ -163,6 +163,21 @@ def print_results(net_name, changed_edges_list, episodes, UE, SO, PoA, graph):
     print('{0}\t{1}\t{2}\t{3}\t{4}'.format(UE, SO, PoA, avg_betweenness,
                                            [((graph.vs[a.tuple[0]]['name'] + '-' + graph.vs[a.tuple[1]]['name']), b) for a, b in
                                            zip(graph.es, graph_betweenness)]))
+
+def get_network_name(net_name, changed_edges_list):
+    """
+    Given the network's base name and a list of changed edges, it creates a new name for the
+    network.
+    In:
+        net_name:String = Network's base name.
+        changed_edges_list:List = List of changed edges.
+    Out:
+        net_name:String = New network's name.
+    """
+    for change in changed_edges_list:
+        net_name += '_' + change
+
+    return net_name
 
 def main():
     """
@@ -184,6 +199,7 @@ def main():
     prs.add_argument("-f", dest="file", required=True, help="The network file.\n")
     prs.add_argument("-e", "--episodes", type=int, default=1000, help="Number of episodes.\n")
     prs.add_argument("-c", "--changes", type=int, default=1, help="Number of changes in the network.\n")
+    prs.add_argument("-k", type=int, default=8, help="Number of routes for KSP algorithm.\n")
     args = prs.parse_args()
 
     #Network name
@@ -198,6 +214,8 @@ def main():
     #Start of the algorithm
     #Gets the original nodes and edges
     nodes, edges, od_matrix, ue, so, PoA = assignment(net_file=args.file, episodes=args.episodes)
+    #Coupling call
+    Coup.calculate_coupling(args.file, None, None, args.k)
     #Gets the original graph
     graph = export_to_igraph(nodes, edges, with_cost=True)
 
@@ -217,6 +235,9 @@ def main():
         #Can ignore the output of edges, nodes and od_matrix as they don't change
         _, _, _, ue, so, PoA = assignment(episodes=args.episodes, edge_list=edges,
                                           node_list=nodes, od_matrix=od_matrix)
+        #Coupling call
+        Coup.calculate_coupling(get_network_name(net_name, changed_edges), None, None, args.k,
+                                edge_list=edges, node_list=nodes, od_matrix=od_matrix)
         #Gets the modified graph
         graph = export_to_igraph(nodes, edges, with_cost=True)
         #print_results(net_name, changed_edges, args.episodes, ue, so, PoA,
