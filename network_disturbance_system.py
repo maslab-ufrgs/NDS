@@ -81,7 +81,8 @@ def assignment(net_file='', iterations=400, edge_list=None, node_list=None, od_m
 
     return nodes, edges, od_matrix, ue, sop, PoA
 
-def change_edges(node_list, edge_list, od_matrix, complementary_edges, just_remove=False):
+def change_edges(node_list, edge_list, od_matrix, complementary_edges, just_remove=False,
+                 edge_to_remove=None):
     """
     Makes random changes in a graph's edges (defined as traffic network).
     In:
@@ -90,23 +91,32 @@ def change_edges(node_list, edge_list, od_matrix, complementary_edges, just_remo
         od_matrix:Dictionary = Dictionary of the OD pairs with the associated demand.
         complementary_edges:Boolean = If it needs to change the complementary edge too.
         just_remove:Boolean = If it doesn't need to add an edge.
+        edge_to_remove:String = Specific edge to be removed from the network.
     Out:
         edge_ln:List = New list of Edge objects representing the new graph.
         changed_edge:String = String representing the edge that was changed.
     #Probably a function that can get stuck in a loop, because it can have possibly 0 connected
     ##graph that can be generated from it
+    ##I think that it cannot be stuck on an infinite loop because if it is randomly trying to add a
+    ##new edge, sometime it will be the old edge, so you get stuck with the old graph and cannot
+    ##generate any new from that, which is not the case if it is just removing.
     """
     found = False
     edge_ln = edge_list
     changed_edge = None
     #Redundant but it's easier for now
     if just_remove:
-        while not found:
-            #Removes one random edge from the network
-            edge_ln.remove(rnd.choice(edge_ln))
-            #Network (graph) still needs to be connected (strongly)
-            if export_to_igraph(node_list, edge_ln).is_connected():
-                found = True
+        if edge_to_remove:
+            edge_ln.remove(edge_to_remove)
+            if not export_to_igraph(node_list, edge_ln).is_connected():
+                raise Exception("The new graph with that edge removed became disconnected!")
+        else:
+            while not found:
+                #Removes one random edge from the network
+                edge_ln.remove(rnd.choice(edge_ln))
+                #Network (graph) still needs to be connected (strongly)
+                if export_to_igraph(node_list, edge_ln).is_connected():
+                    found = True
     if not just_remove:
         while not found:
             #Chooses an edge randomly
@@ -174,10 +184,13 @@ def print_results(net_name, changed_edges_list, iterations, UE, SO, PoA, graph):
     avg_betweenness = sum(graph_betweenness)/len(graph.es)
     #Prints some kind of table
     print('#Network name = {0}\t# of iterations = {1}'.format(net_name, iterations))
-    print('#User Equilibrium\tSystem Optimal\tPrice of Anarchy\tEdge Betweenness\tEach edge betweenness')
-    print('{0}\t{1}\t{2}\t{3}\t{4}'.format(UE, SO, PoA, avg_betweenness,
-                                           sorted([((graph.vs[a.tuple[0]]['name'] + '-' + graph.vs[a.tuple[1]]['name']), b) for a, b in
-                                           zip(graph.es, graph_betweenness)])))
+    #Old version just in case if it's needed in the future (I doubt)
+    #print('#UE\tSO\tPoA\tEdge Betweenness\tEach edge betweenness')
+    #print('{0}\t{1}\t{2}\t{3}\t{4}'.format(UE, SO, PoA, avg_betweenness,
+    #                                       sorted([((graph.vs[a.tuple[0]]['name'] + '-' + graph.vs[a.tuple[1]]['name']), b) for a, b in
+    #                                       zip(graph.es, graph_betweenness)])))
+    print('#UE\tSO\tPoA')
+    print('{0}\t{1}\t{2}'.format(UE, SO, PoA))
 
 def get_network_name(net_name, changed_edges_list):
     """
