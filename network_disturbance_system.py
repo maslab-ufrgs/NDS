@@ -250,7 +250,7 @@ def main():
                                               a traffic network (graph) by removing 1 random edge
                                               and inserting another with the same attributes but
                                               with different start and end nodes.\n
-                                              V1.6
+                                              V1.9
                                               """)
     prs.add_argument("-f", dest="file", required=True, help="The network file.\n")
     prs.add_argument("-i", "--iterations", type=int, default=1000, help="Number of iterations (MSA).\n")
@@ -260,7 +260,8 @@ def main():
                      help="If it is to change both directions of the edge.\n")
     prs.add_argument("-jr", "--just_remove", action="store_true", default=False,
                      help="If it is only to remove edges and not add any afterwards.\n")
-    prs.add_argument("-e", "--edge", type=str, default='', help="Specific edge to change.\n")
+    prs.add_argument("-e", "--edge", type=str, default='',
+                     help="Specific edge to change (CASE SENSITIVE).\n")
     prs.add_argument("-re", "--ranked_edges", type=int, default=0,
                      help="Number of top edges to not remove (random removing/changing).\n")
     args = prs.parse_args()
