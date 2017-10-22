@@ -82,7 +82,7 @@ def assignment(net_file='', iterations=400, edge_list=None, node_list=None, od_m
     return nodes, edges, od_matrix, ue, sop, PoA
 
 def change_edges(node_list, edge_list, od_matrix, complementary_edges, just_remove=False,
-                 edge_to_remove=None):
+                 edge_to_remove=''):
     """
     Makes random changes in a graph's edges (defined as traffic network).
     In:
@@ -106,6 +106,7 @@ def change_edges(node_list, edge_list, od_matrix, complementary_edges, just_remo
     changed_edge = None
     #Redundant but it's easier for now
     if just_remove:
+        #If it is needed to remove one specific edge in the network
         if edge_to_remove:
             edge_ln.remove(edge_to_remove)
             if not export_to_igraph(node_list, edge_ln).is_connected():
@@ -117,10 +118,15 @@ def change_edges(node_list, edge_list, od_matrix, complementary_edges, just_remo
                 #Network (graph) still needs to be connected (strongly)
                 if export_to_igraph(node_list, edge_ln).is_connected():
                     found = True
-    if not just_remove:
+    else:
         while not found:
-            #Chooses an edge randomly
-            rnd_edge = rnd.choice(edge_ln)
+            #Searches the list for the edge requested
+            ##Warning: It will raise a StopIteration exception if no matching edge is found
+            if edge_to_remove:
+                rnd_edge = next(edge for edge in edge_ln if edge.name == edge_to_remove)
+            else:
+                #Chooses an edge randomly
+                rnd_edge = rnd.choice(edge_ln)
             edge_old_name = rnd_edge.name
             #Chooses 2 random nodes
             node1 = rnd.choice(node_list)
@@ -234,6 +240,7 @@ def main():
                      help="If it is to change both directions of the edge.\n")
     prs.add_argument("-jr", "--just_remove", action="store_true", default=False,
                      help="If it is only to remove edges and not add any afterwards.\n")
+    prs.add_argument("-e", "--edge", type=str, default='', help="Specific edge to change.\n")
     args = prs.parse_args()
 
     #Network name
@@ -244,6 +251,9 @@ def main():
 
     #Number of changes made in the edges
     changes = 0
+
+    #Specific edge to change
+    edge_to_remove = args.edge
 
     #Start of the algorithm
     #Gets the original nodes and edges
@@ -260,7 +270,8 @@ def main():
     while changes < args.changes:
         #Modified edges of the graph
         edges, changed_edge = change_edges(nodes, edges, od_matrix, args.complementary_edges,
-                                           just_remove=args.just_remove)
+                                           just_remove=args.just_remove,
+                                           edge_to_remove=edge_to_remove)
         #Append to the list of changes if it's not None
         if changed_edge:
             changed_edges.append(changed_edge)
@@ -278,6 +289,9 @@ def main():
 
         #Prints the results on-screen
         print_results(net_name, changed_edges, args.iterations, ue, so, PoA, graph)
+
+        #Resets edge
+        edge_to_remove = ''
 
 
 if __name__ == '__main__':
