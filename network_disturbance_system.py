@@ -104,7 +104,6 @@ def change_edges(node_list, edge_list, od_matrix, complementary_edges, just_remo
     found = False
     edge_ln = edge_list
     changed_edge = None
-    print(ranked_edges)
     #Redundant but it's easier for now
     if just_remove:
         #If it is needed to remove one specific edge in the network
