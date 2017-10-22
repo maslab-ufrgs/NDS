@@ -82,7 +82,7 @@ def assignment(net_file='', iterations=400, edge_list=None, node_list=None, od_m
     return nodes, edges, od_matrix, ue, sop, PoA
 
 def change_edges(node_list, edge_list, od_matrix, complementary_edges, just_remove=False,
-                 edge_to_remove=''):
+                 edge_to_remove='', ranked_edges=[]):
     """
     Makes random changes in a graph's edges (defined as traffic network).
     In:
@@ -104,6 +104,7 @@ def change_edges(node_list, edge_list, od_matrix, complementary_edges, just_remo
     found = False
     edge_ln = edge_list
     changed_edge = None
+    print(ranked_edges)
     #Redundant but it's easier for now
     if just_remove:
         #If it is needed to remove one specific edge in the network
@@ -116,12 +117,13 @@ def change_edges(node_list, edge_list, od_matrix, complementary_edges, just_remo
             while not found:
                 #Chooses one random edge
                 edge_rmv = rnd.choice(edge_ln)
-                #Removes it from the network
-                edge_ln.remove(edge_rmv)
-                #Network (graph) still needs to be connected (strongly)
-                if export_to_igraph(node_list, edge_ln).is_connected():
-                    found = True
-                    changed_edge = "{0}-{1}".format(edge_rmv.start, edge_rmv.end)
+                if edge_rmv.flow not in ranked_edges:
+                    #Removes it from the network
+                    edge_ln.remove(edge_rmv)
+                    #Network (graph) still needs to be connected (strongly)
+                    if export_to_igraph(node_list, edge_ln).is_connected():
+                        found = True
+                        changed_edge = "{0}-{1}".format(edge_rmv.start, edge_rmv.end)
     else:
         while not found:
             #Searches the list for the edge requested
@@ -131,45 +133,47 @@ def change_edges(node_list, edge_list, od_matrix, complementary_edges, just_remo
             else:
                 #Chooses an edge randomly
                 rnd_edge = rnd.choice(edge_ln)
-            edge_old_name = rnd_edge.name
-            #Chooses 2 random nodes
-            node1 = rnd.choice(node_list)
-            node2 = rnd.choice(node_list)
-            #Checks if the 2 nodes are equal or they are an OD pair
-            if not (node1 == node2 or (str(node1.name + '|' + node2.name) in od_matrix)):
-                #Changes the edge start and end
-                if complementary_edges:
-                    """
-                    Needs to the for actually two edges, because an undirected graph is represented as
-                        having two directed edges, let's call it complementary edge. The graph isn't
-                        necessarily an undirected graph.
-                    """
-                    #Gets this complementary edge
-                    has_comp_edge = False
-                    for edge in edge_ln:
-                        if edge.end == rnd_edge.start and edge.start == rnd_edge.end:
-                            comp_edge = edge
-                            has_comp_edge = True
-                            break
-                #Changes the random edge
-                rnd_edge.start = node1.name
-                rnd_edge.end = node2.name
+                edge_old_name = rnd_edge.name
+            #Not one of the top edges
+            if rnd_edge.flow not in ranked_edges:
+                #Chooses 2 random nodes
+                node1 = rnd.choice(node_list)
+                node2 = rnd.choice(node_list)
+                #Checks if the 2 nodes are equal or they are an OD pair
+                if not (node1 == node2 or (str(node1.name + '|' + node2.name) in od_matrix)):
+                    #Changes the edge start and end
+                    if complementary_edges:
+                        """
+                        Needs to the for actually two edges, because an undirected graph is represented as
+                            having two directed edges, let's call it complementary edge. The graph isn't
+                            necessarily an undirected graph.
+                        """
+                        #Gets this complementary edge
+                        has_comp_edge = False
+                        for edge in edge_ln:
+                            if edge.end == rnd_edge.start and edge.start == rnd_edge.end:
+                                comp_edge = edge
+                                has_comp_edge = True
+                                break
+                    #Changes the random edge
+                    rnd_edge.start = node1.name
+                    rnd_edge.end = node2.name
 
-                if complementary_edges:
-                    #If we change the name of the edge, we`ll receive warnings from Docplex because of
-                    ##duplicate names sometimes
-                    #rnd_edge.name = "{0}-{1}".format(node1.name, node2.name)
-                    #Changes the complementary edges, if it has one
-                    if has_comp_edge:
-                        comp_edge.start = node2.name
-                        comp_edge.end = node1.name
-                        #comp_edge.name = "{0}-{1}".format(node2.name, node1.name)
+                    if complementary_edges:
+                        #If we change the name of the edge, we`ll receive warnings from Docplex because of
+                        ##duplicate names sometimes
+                        #rnd_edge.name = "{0}-{1}".format(node1.name, node2.name)
+                        #Changes the complementary edges, if it has one
+                        if has_comp_edge:
+                            comp_edge.start = node2.name
+                            comp_edge.end = node1.name
+                            #comp_edge.name = "{0}-{1}".format(node2.name, node1.name)
 
-                #Checks if the graph is connected, if it is, then the function is over and a new graph
-                ##has been found
-                if export_to_igraph(node_list, edge_ln).is_connected():
-                    found = True
-                    changed_edge = "{0}_{1}-{2}".format(edge_old_name, node1.name, node2.name)
+                    #Checks if the graph is connected, if it is, then the function is over and a new graph
+                    ##has been found
+                    if export_to_igraph(node_list, edge_ln).is_connected():
+                        found = True
+                        changed_edge = "{0}_{1}-{2}".format(edge_old_name, node1.name, node2.name)
 
     return edge_ln, changed_edge
 
@@ -218,6 +222,17 @@ def get_network_name(net_name, changed_edges_list):
 
     return net_name
 
+def rank_edges(edge_list, n):
+    """
+    Returns a list with the n edge with most flow.
+    In:
+        edge_list:List = Edge list of the network.
+        n:Integer = Number of top elements to choose.
+    Out:
+        ranked_edges:List = List with the top n edges on flow.
+    """
+    return [edge.flow for edge in sorted(edge_list, key=lambda x:x.flow, reverse=True)[:n+1]]
+
 def main():
     """
     Upper level function. It calls the other functions in an orderly way.
@@ -246,6 +261,8 @@ def main():
     prs.add_argument("-jr", "--just_remove", action="store_true", default=False,
                      help="If it is only to remove edges and not add any afterwards.\n")
     prs.add_argument("-e", "--edge", type=str, default='', help="Specific edge to change.\n")
+    prs.add_argument("-re", "--ranked_edges", type=int, default=0,
+                     help="Number of top edges to not remove (random removing/changing).\n")
     args = prs.parse_args()
 
     #Network name
@@ -263,6 +280,8 @@ def main():
     #Start of the algorithm
     #Gets the original nodes and edges
     nodes, edges, od_matrix, ue, so, PoA = assignment(net_file=args.file, iterations=args.iterations)
+    #List of edges to safeguard
+    ranked_edgs = rank_edges(edges, args.ranked_edges)
     #Coupling call
     Coup.calculate_coupling(args.file, None, None, args.k)
     #Gets the original graph
@@ -276,7 +295,7 @@ def main():
         #Modified edges of the graph
         edges, changed_edge = change_edges(nodes, edges, od_matrix, args.complementary_edges,
                                            just_remove=args.just_remove,
-                                           edge_to_remove=edge_to_remove)
+                                           edge_to_remove=edge_to_remove, ranked_edges=ranked_edgs)
         #Append to the list of changes if it's not None
         changed_edges.append(changed_edge)
         #Number of changes made in the edges
