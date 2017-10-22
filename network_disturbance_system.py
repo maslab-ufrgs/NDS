@@ -283,6 +283,7 @@ def main():
     #List of edges to safeguard
     ranked_edgs = rank_edges(edges, args.ranked_edges)
     #Coupling call
+    print("#Routes:")
     Coup.calculate_coupling(args.file, None, None, args.k, output=True)
     #Gets the original graph
     graph = export_to_igraph(nodes, edges, with_cost=True)
@@ -305,6 +306,7 @@ def main():
         _, _, _, ue, so, PoA = assignment(iterations=args.iterations, edge_list=edges,
                                           node_list=nodes, od_matrix=od_matrix)
         #Coupling call
+        print("\n#Routes:")
         Coup.calculate_coupling(get_network_name(net_name, changed_edges), None, None, args.k,
                                 edge_list=edges, node_list=nodes, od_matrix=od_matrix, output=True)
         #Gets the modified graph
