@@ -4,3 +4,6 @@
 [submodule "system_optimal_solver"]
 	path = system_optimal_solver
 	url = https://github.com/maslab-ufrgs/system_optimal_solver
+[submodule "route_coupling"]
+	path = route_coupling
+	url = https://github.com/maslab-ufrgs/route_coupling

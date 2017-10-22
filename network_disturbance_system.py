@@ -249,7 +249,7 @@ def main():
                                               a traffic network (graph) by removing 1 random edge
                                               and inserting another with the same attributes but
                                               with different start and end nodes.\n
-                                              V1.9
+                                              V2.0
                                               """)
     prs.add_argument("-f", dest="file", required=True, help="The network file.\n")
     prs.add_argument("-i", "--iterations", type=int, default=1000, help="Number of iterations (MSA).\n")
