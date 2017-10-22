@@ -108,16 +108,20 @@ def change_edges(node_list, edge_list, od_matrix, complementary_edges, just_remo
     if just_remove:
         #If it is needed to remove one specific edge in the network
         if edge_to_remove:
-            edge_ln.remove(edge_to_remove)
+            edge_ln.remove(next(edge for edge in edge_ln if edge.name == edge_to_remove))
+            changed_edge = edge_to_remove
             if not export_to_igraph(node_list, edge_ln).is_connected():
                 raise Exception("The new graph with that edge removed became disconnected!")
         else:
             while not found:
-                #Removes one random edge from the network
-                edge_ln.remove(rnd.choice(edge_ln))
+                #Chooses one random edge
+                edge_rmv = rnd.choice(edge_ln)
+                #Removes it from the network
+                edge_ln.remove(edge_rmv)
                 #Network (graph) still needs to be connected (strongly)
                 if export_to_igraph(node_list, edge_ln).is_connected():
                     found = True
+                    changed_edge = "{0}-{1}".format(edge_rmv.start, edge_rmv.end)
     else:
         while not found:
             #Searches the list for the edge requested
@@ -169,7 +173,7 @@ def change_edges(node_list, edge_list, od_matrix, complementary_edges, just_remo
 
     return edge_ln, changed_edge
 
-def print_results(net_name, changed_edges_list, iterations, UE, SO, PoA, graph):
+def print_results(net_name, changed_edges_list, iterations, UE, SO, PoA, edge_list):
     """
     Prints the results in a table.
     In:
@@ -179,15 +183,15 @@ def print_results(net_name, changed_edges_list, iterations, UE, SO, PoA, graph):
         UE:Float = User equilibrium.
         SO:Float = System optimal.
         PoA:Float = Price of Anarchy.
-        graph:Graph = Python iGraph Graph object that represents the network.
+        edge_list:List = List of edges.
     """
     #Creates the name of the network correctly in the form: network_name_original + _change1_change2
     net_name = get_network_name(net_name, changed_edges_list)
 
     #List of betweenness of each edge in the graph
-    graph_betweenness = graph.edge_betweenness(weights='weight')
+    #graph_betweenness = graph.edge_betweenness(weights='weight')
     #Average value of the edge betweenness of the graph
-    avg_betweenness = sum(graph_betweenness)/len(graph.es)
+    #avg_betweenness = sum(graph_betweenness)/len(graph.es)
     #Prints some kind of table
     print('#Network name = {0}\t# of iterations = {1}'.format(net_name, iterations))
     #Old version just in case if it's needed in the future (I doubt)
@@ -195,8 +199,9 @@ def print_results(net_name, changed_edges_list, iterations, UE, SO, PoA, graph):
     #print('{0}\t{1}\t{2}\t{3}\t{4}'.format(UE, SO, PoA, avg_betweenness,
     #                                       sorted([((graph.vs[a.tuple[0]]['name'] + '-' + graph.vs[a.tuple[1]]['name']), b) for a, b in
     #                                       zip(graph.es, graph_betweenness)])))
-    print('#UE\tSO\tPoA')
-    print('{0}\t{1}\t{2}'.format(UE, SO, PoA))
+    print('#UE\tSO\tPoA\tEach edge flow')
+    print('{0}\t{1}\t{2}\t{3}'.format(UE, SO, PoA, [(e.start + '-' + e.end + ', ', e.flow) for e in
+                                      sorted(edge_list, key=lambda x:x.start)]))
 
 def get_network_name(net_name, changed_edges_list):
     """
@@ -264,7 +269,7 @@ def main():
     graph = export_to_igraph(nodes, edges, with_cost=True)
 
     #Prints the results on-screen
-    print_results(net_name, changed_edges, args.iterations, ue, so, PoA, graph)
+    print_results(net_name, changed_edges, args.iterations, ue, so, PoA, edges)
 
     #While loop for changing the edges of the graph
     while changes < args.changes:
@@ -273,8 +278,7 @@ def main():
                                            just_remove=args.just_remove,
                                            edge_to_remove=edge_to_remove)
         #Append to the list of changes if it's not None
-        if changed_edge:
-            changed_edges.append(changed_edge)
+        changed_edges.append(changed_edge)
         #Number of changes made in the edges
         changes += 1
 
@@ -288,7 +292,7 @@ def main():
         graph = export_to_igraph(nodes, edges, with_cost=True)
 
         #Prints the results on-screen
-        print_results(net_name, changed_edges, args.iterations, ue, so, PoA, graph)
+        print_results(net_name, changed_edges, args.iterations, ue, so, PoA, edges)
 
         #Resets edge
         edge_to_remove = ''
