@@ -53,4 +53,7 @@ arguments:
   -c CHANGES, --changes CHANGES  Number of changes in the network. (default: 1)
   -k K, Number of routes for KSP algorithm. (default: 8)
   -ce COMPLEMENTARY_EDGES, If it is to change both direction of the edge. (default: False)
+  -jr, --just_remove    If it is only to remove edges and not add any afterwards. (default: False)
+  -e EDGE, --edge EDGE  Specific edge to change (CASE SENSITIVE). (default: '')
+  -re RANKED_EDGES, --ranked_edges RANKED_EDGES Number of top edges to not remove (random removing/changing). (default: 0)
 ```
