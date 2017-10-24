@@ -282,18 +282,23 @@ def main():
     nodes, edges, od_matrix, ue, so, PoA = assignment(net_file=args.file, iterations=args.iterations)
     #List of edges to safeguard
     ranked_edgs = rank_edges(edges, args.ranked_edges)
-    #Coupling call
-    print("#Routes:")
-    Coup.calculate_coupling(args.file, None, None, args.k, output=True)
     #Gets the original graph
     graph = export_to_igraph(nodes, edges, with_cost=True)
 
     #Prints the results on-screen
     print_results(net_name, changed_edges, args.iterations, ue, so, PoA, edges)
 
+    #Coupling call
+    print("#Routes:")
+    Coup.calculate_coupling(args.file, None, None, args.k, output=True)
     #While loop for changing the edges of the graph
     while changes < args.changes:
-        #Modified edges of the graph
+        #Resets the flow and the cost in each edge
+        for edge in edges:
+            edge.flow = 0
+            edge.update_cost()
+
+       #Modified edges of the graph
         edges, changed_edge = change_edges(nodes, edges, od_matrix, args.complementary_edges,
                                            just_remove=args.just_remove,
                                            edge_to_remove=edge_to_remove, ranked_edges=ranked_edgs)
@@ -305,16 +310,21 @@ def main():
         #Can ignore the output of edges, nodes and od_matrix as they don't change
         _, _, _, ue, so, PoA = assignment(iterations=args.iterations, edge_list=edges,
                                           node_list=nodes, od_matrix=od_matrix)
-        #Coupling call
-        print("\n#Routes:")
-        Coup.calculate_coupling(get_network_name(net_name, changed_edges), None, None, args.k,
-                                edge_list=edges, node_list=nodes, od_matrix=od_matrix, output=True)
         #Gets the modified graph
         graph = export_to_igraph(nodes, edges, with_cost=True)
 
         #Prints the results on-screen
         print_results(net_name, changed_edges, args.iterations, ue, so, PoA, edges)
 
+        #Resets the flow and the cost in each edge
+        for edge in edges:
+            edge.flow = 0
+            edge.update_cost()
+
+        #Coupling call
+        print("#Routes:")
+        Coup.calculate_coupling(get_network_name(net_name, changed_edges), None, None, args.k,
+                                edge_list=edges, node_list=nodes, od_matrix=od_matrix, output=True)
         #Resets edge
         edge_to_remove = ''
 
