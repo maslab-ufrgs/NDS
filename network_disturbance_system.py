@@ -159,14 +159,10 @@ def change_edges(node_list, edge_list, od_matrix, complementary_edges, just_remo
                     rnd_edge.end = node2.name
 
                     if complementary_edges:
-                        #If we change the name of the edge, we`ll receive warnings from Docplex because of
-                        ##duplicate names sometimes
-                        #rnd_edge.name = "{0}-{1}".format(node1.name, node2.name)
                         #Changes the complementary edges, if it has one
                         if has_comp_edge:
                             comp_edge.start = node2.name
                             comp_edge.end = node1.name
-                            #comp_edge.name = "{0}-{1}".format(node2.name, node1.name)
 
                     #Checks if the graph is connected, if it is, then the function is over and a new graph
                     ##has been found
@@ -191,18 +187,9 @@ def print_results(net_name, changed_edges_list, iterations, UE, SO, PoA, edge_li
     #Creates the name of the network correctly in the form: network_name_original + _change1_change2
     net_name = get_network_name(net_name, changed_edges_list)
 
-    #List of betweenness of each edge in the graph
-    #graph_betweenness = graph.edge_betweenness(weights='weight')
-    #Average value of the edge betweenness of the graph
-    #avg_betweenness = sum(graph_betweenness)/len(graph.es)
     #Prints some kind of table
     print('#Network name = {0}\t# of iterations = {1}'.format(net_name, iterations))
-    #Old version just in case if it's needed in the future (I doubt)
-    #print('#UE\tSO\tPoA\tEdge Betweenness\tEach edge betweenness')
-    #print('{0}\t{1}\t{2}\t{3}\t{4}'.format(UE, SO, PoA, avg_betweenness,
-    #                                       sorted([((graph.vs[a.tuple[0]]['name'] + '-' + graph.vs[a.tuple[1]]['name']), b) for a, b in
-    #                                       zip(graph.es, graph_betweenness)])))
-    print('#UE\tSO\tPoA\tEach edge flow')
+    print('#UE\tSO\tPoA\tEach edge flow (MSA)')
     print('{0}\t{1}\t{2}\t{3}'.format(UE, SO, PoA, [(e.start + '-' + e.end + ', ', e.flow) for e in
                                       sorted(edge_list, key=lambda x:x.start)]))
 
