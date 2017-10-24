@@ -188,7 +188,7 @@ def print_results(net_name, changed_edges_list, iterations, UE, SO, PoA, edge_li
     net_name = get_network_name(net_name, changed_edges_list)
 
     #Prints some kind of table
-    print('#Network name = {0}\t# of iterations = {1}'.format(net_name, iterations))
+    print('#Network name = {0}\t# of iterations (MSA) = {1}'.format(net_name, iterations))
     print('#UE\tSO\tPoA\tEach edge flow (MSA)')
     print('{0}\t{1}\t{2}\t{3}'.format(UE, SO, PoA, [(e.start + '-' + e.end + ', ', e.flow) for e in
                                       sorted(edge_list, key=lambda x:x.start)]))
