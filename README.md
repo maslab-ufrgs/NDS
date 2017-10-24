@@ -49,7 +49,7 @@ The results of the coupling measure is in a csv file with the name of the accord
 arguments:
   -h, --help            shows help message and exit
   -f FILE               The network file. (default: None)
-  -e EPISODES, --episodes EPISODES  Number of episodes. (default: 1000)
+  -i ITERATIONS, --iterations ITERATIONS  Number of iterations (MSA). (default: 1000)
   -c CHANGES, --changes CHANGES  Number of changes in the network. (default: 1)
   -k K, Number of routes for KSP algorithm. (default: 8)
   -ce COMPLEMENTARY_EDGES, If it is to change both direction of the edge. (default: False)
