@@ -10,12 +10,7 @@ attributes but with different start and end nodes.
  
  There is the need to initialize the submodules, to do so use the following command:
 ```sh
-git submodule init && git submodule update
-```
-
- Do not forget of doing the same for each submodule, change directory into the submodule's folder and type:
-```sh
-git submodule init && git submodule update
+git submodule update --init --recursive
 ```
 
 ## Networks
