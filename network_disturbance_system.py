@@ -69,7 +69,7 @@ def assignment(net_file='', iterations=400, edge_list=None, node_list=None, od_m
                                               od_matrix=od_matrix, output=False)
     else:
         #Calls MSA for network and UE
-        nodes, edges, od_matrix, ue = MSA.run(iterations, net_file=net_file, output=False)
+        nodes, edges, od_matrix, ue, od_routes_flow = MSA.run(iterations, net_file=net_file, output=False)
 
     #Calls System Optimal Solver for SO
     so = SO.SOSolver(nodes, edges, od_matrix)
@@ -79,7 +79,7 @@ def assignment(net_file='', iterations=400, edge_list=None, node_list=None, od_m
     #Price of anarchy value
     PoA = ue/sop
 
-    return nodes, edges, od_matrix, ue, sop, PoA
+    return nodes, edges, od_matrix, ue, sop, PoA, od_routes_flow
 
 def change_edges(node_list, edge_list, od_matrix, complementary_edges, just_remove=False,
                  edge_to_remove='', ranked_edges=[]):
@@ -250,6 +250,8 @@ def main():
                      help="Specific edge to change (CASE SENSITIVE).\n")
     prs.add_argument("-re", "--ranked_edges", type=int, default=0,
                      help="Number of top edges to not remove (random removing/changing).\n")
+    prs.add_argument("-fod", "--flow_per_route_per_od", action="store_true", default=False,
+                     help="If it is only to print the flow per route per OD pair (MSA).\n")
     args = prs.parse_args()
 
     #Network name
@@ -266,7 +268,7 @@ def main():
 
     #Start of the algorithm
     #Gets the original nodes and edges
-    nodes, edges, od_matrix, ue, so, PoA = assignment(net_file=args.file, iterations=args.iterations)
+    nodes, edges, od_matrix, ue, so, PoA, od_routes_flow = assignment(net_file=args.file, iterations=args.iterations)
     #List of edges to safeguard
     ranked_edgs = rank_edges(edges, args.ranked_edges)
     #Gets the original graph
@@ -274,6 +276,15 @@ def main():
 
     #Prints the results on-screen
     print_results(net_name, changed_edges, args.iterations, ue, so, PoA, edges)
+
+    #Prints the flow per route per OD pair
+    if args.flow_per_route_per_od:
+        print("#Flow per route per OD pair:")
+        for od in od_matrix:
+            print("{}".format(od))
+            for route in od_routes_flow[od]:
+                print("\t{0} = {1} vehicles".format(route, od_routes_flow[od][route][1]))
+
 
     #Coupling call
     print("#Routes:")
@@ -285,7 +296,7 @@ def main():
             edge.flow = 0
             edge.update_cost()
 
-       #Modified edges of the graph
+        #Modified edges of the graph
         edges, changed_edge = change_edges(nodes, edges, od_matrix, args.complementary_edges,
                                            just_remove=args.just_remove,
                                            edge_to_remove=edge_to_remove, ranked_edges=ranked_edgs)
@@ -295,10 +306,8 @@ def main():
         changes += 1
 
         #Can ignore the output of edges, nodes and od_matrix as they don't change
-        _, _, _, ue, so, PoA = assignment(iterations=args.iterations, edge_list=edges,
+        _, _, _, ue, so, PoA, od_routes_flow = assignment(iterations=args.iterations, edge_list=edges,
                                           node_list=nodes, od_matrix=od_matrix)
-        #Gets the modified graph
-        graph = export_to_igraph(nodes, edges, with_cost=True)
 
         #Prints the results on-screen
         print_results(net_name, changed_edges, args.iterations, ue, so, PoA, edges)
