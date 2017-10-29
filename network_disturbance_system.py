@@ -65,7 +65,7 @@ def assignment(net_file='', iterations=400, edge_list=None, node_list=None, od_m
         PoA:Float = Price of Anarchy.
     """
     if edge_list and node_list and od_matrix:
-        nodes, edges, od_matrix, ue = MSA.run(iterations, edge_list=edge_list, node_list=node_list,
+        nodes, edges, od_matrix, ue, od_routes_flow = MSA.run(iterations, edge_list=edge_list, node_list=node_list,
                                               od_matrix=od_matrix, output=False)
     else:
         #Calls MSA for network and UE
@@ -190,7 +190,7 @@ def print_results(net_name, changed_edges_list, iterations, UE, SO, PoA, edge_li
     #Prints some kind of table
     print('#Network name = {0}\t# of iterations (MSA) = {1}'.format(net_name, iterations))
     print('#UE\tSO\tPoA\tEach edge flow (MSA)')
-    print('{0}\t{1}\t{2}\t{3}'.format(UE, SO, PoA, [(e.start + '-' + e.end + ', ', e.flow) for e in
+    print('{0}\t{1}\t{2}\t{3}'.format(UE, SO, PoA, [(e.start + '-' + e.end, '{:.6f}'.format(e.flow)) for e in
                                       sorted(edge_list, key=lambda x:x.start)]))
 
 def get_network_name(net_name, changed_edges_list):
@@ -307,7 +307,7 @@ def main():
 
         #Can ignore the output of edges, nodes and od_matrix as they don't change
         _, _, _, ue, so, PoA, od_routes_flow = assignment(iterations=args.iterations, edge_list=edges,
-                                          node_list=nodes, od_matrix=od_matrix)
+                                                          node_list=nodes, od_matrix=od_matrix)
 
         #Prints the results on-screen
         print_results(net_name, changed_edges, args.iterations, ue, so, PoA, edges)
@@ -316,6 +316,15 @@ def main():
         for edge in edges:
             edge.flow = 0
             edge.update_cost()
+
+        #Prints the flow per route per OD pair
+        if args.flow_per_route_per_od:
+            print("#Flow per route per OD pair:")
+            for od in od_matrix:
+                print("{}".format(od))
+                for route in od_routes_flow[od]:
+                    print("\t{0} = {1} vehicles".format(route, od_routes_flow[od][route][1]))
+
 
         #Coupling call
         print("#Routes:")
