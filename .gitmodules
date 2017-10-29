@@ -4,3 +4,6 @@
 [submodule "MSA"]
 	path = MSA
 	url = https://github.com/maslab-ufrgs/MSA
+[submodule "route_coupling"]
+	path = route_coupling
+	url = https://github.com/maslab-ufrgs/route_coupling
