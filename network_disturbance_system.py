@@ -110,6 +110,10 @@ def change_edges(node_list, edge_list, od_matrix, complementary_edges, just_remo
         if edge_to_remove:
             edge_ln.remove(next(edge for edge in edge_ln if edge.name == edge_to_remove))
             changed_edge = edge_to_remove
+            #Removes complementary edge
+            if complementary_edges:
+                comp_to_remove = edge_to_remove.split('-')[1] + '-' + edge_to_remove.split('-')[0]
+                edge_ln.remove(next(edge for edge in edge_ln if edge.name == comp_to_remove))
             if not export_to_igraph(node_list, edge_ln).is_connected():
                 raise Exception("The new graph with that edge removed became disconnected!")
         else:
