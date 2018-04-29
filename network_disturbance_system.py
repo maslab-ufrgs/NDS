@@ -15,7 +15,7 @@ import igraph as iG
 
 #Home-made modules
 import MSA.successive_averages as MSA
-import system_optimal_solver.so_solver as SO
+import system_optimum_solver.so_solver as SO
 import route_coupling.coupling as Coup
 
 def export_to_igraph(node_list, edge_list, with_cost=False):
@@ -74,7 +74,7 @@ def assignment(net_file='', iterations=400, edge_list=None, node_list=None, od_m
     #Calls System Optimal Solver for SO
     so = SO.SOSolver(nodes, edges, od_matrix)
     so.solve()
-    sop = so.get_system_optimal()
+    sop = so.get_system_optimum()
 
     #Price of anarchy value
     PoA = ue/sop
