@@ -14,7 +14,7 @@ git submodule update --init --recursive
 ```
 
 ## Networks
- Available at:  [Networks](https://github.com/maslab-ufrgs/network-files)
+ Available at:  [Networks](https://github.com/maslab-ufrgs/transportation_networks)
  
 ## Usage
 Download, extract and from the program folder:
